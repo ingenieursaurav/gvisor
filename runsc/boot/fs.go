@@ -37,6 +37,7 @@ import (
 	"gvisor.dev/gvisor/pkg/sentry/fs"
 	"gvisor.dev/gvisor/pkg/sentry/fs/gofer"
 	"gvisor.dev/gvisor/pkg/sentry/fs/ramfs"
+	"gvisor.dev/gvisor/pkg/sentry/fs/user"
 	"gvisor.dev/gvisor/pkg/sentry/fsimpl/devpts"
 	"gvisor.dev/gvisor/pkg/sentry/fsimpl/devtmpfs"
 	gofervfs2 "gvisor.dev/gvisor/pkg/sentry/fsimpl/gofer"
@@ -297,11 +298,10 @@ func setupContainerFS(ctx context.Context, conf *Config, mntr *containerMounter,
 // setExecutablePath sets the procArgs.Filename by searching the PATH for an
 // executable matching the procArgs.Argv[0].
 func setExecutablePath(ctx context.Context, procArgs *kernel.CreateProcessArgs) error {
-	paths := fs.GetPath(procArgs.Envv)
 	exe := procArgs.Argv[0]
-	f, err := procArgs.MountNamespace.ResolveExecutablePath(ctx, procArgs.WorkingDirectory, exe, paths)
+	f, err := user.ResolveExecutablePath(ctx, procArgs.Credentials, procArgs.MountNamespace, procArgs.MountNamespaceVFS2, procArgs.Envv, procArgs.WorkingDirectory, exe)
 	if err != nil {
-		return fmt.Errorf("searching for executable %q, cwd: %q, $PATH=%q: %v", exe, procArgs.WorkingDirectory, strings.Join(paths, ":"), err)
+		return fmt.Errorf("searching for executable %q, cwd: %q, envv: %q: %v", exe, procArgs.WorkingDirectory, procArgs.Envv, err)
 	}
 	procArgs.Filename = f
 	return nil
