@@ -33,6 +33,7 @@ go_template_instance(
     out = "usage_set.go",
     consts = {
         "minDegree": "10",
+        "trackGaps": "1",
     },
     imports = {
         "platform": "gvisor.dev/gvisor/pkg/sentry/platform",
